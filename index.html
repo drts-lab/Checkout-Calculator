@@ -65,16 +65,12 @@
         </div>
         
         <!-- Controls -->
-        <div class="space-y-2">
-            <div class="grid grid-cols-4 gap-2">
-                 <button id="random-btn" class="main-btn bg-[#545454] border border-gray-600 hover:bg-gray-600">Random</button>
-                 <button id="set-target-btn" class="main-btn bg-[#545454] border border-gray-600 hover:bg-gray-600">Set</button>
-                 <button id="reset-btn" class="main-btn bg-[#545454] border border-gray-600 hover:bg-gray-600">Reset</button>
-                 <button id="undo-btn" class="main-btn bg-[#545454] border border-gray-600 hover:bg-gray-600">Undo</button>
-            </div>
-            <div class="flex items-center justify-center bg-[#545454] border border-gray-600 rounded-lg h-14">
-                <label for="hint-toggle" class="flex items-center cursor-pointer">
-                    <span class="mr-3 text-white text-base font-semibold">Hints</span>
+        <div class="flex gap-2 items-center">
+             <button id="set-target-btn" class="flex-1 main-btn bg-[#545454] border border-gray-600 hover:bg-gray-600">Set</button>
+             <button id="random-btn" class="flex-1 main-btn bg-[#545454] border border-gray-600 hover:bg-gray-600">Random</button>
+            <div class="flex-1 flex items-center justify-center">
+                <label for="hint-toggle" class="flex items-center cursor-pointer p-2">
+                    <span class="mr-2 text-white text-base font-semibold">Hints</span>
                     <div class="relative">
                         <input type="checkbox" id="hint-toggle" class="sr-only">
                         <div class="track block bg-black w-14 h-8 rounded-full"></div>
@@ -82,6 +78,7 @@
                     </div>
                 </label>
             </div>
+             <button id="undo-btn" class="flex-1 main-btn bg-[#545454] border border-gray-600 hover:bg-gray-600">Undo</button>
         </div>
 
         <!-- Keypad -->
@@ -136,7 +133,6 @@
                 document.getElementById('dart3-display')
             ];
             const randomBtn = document.getElementById('random-btn');
-            const resetBtn = document.getElementById('reset-btn');
             const undoBtn = document.getElementById('undo-btn');
             const scoreBtns = document.querySelectorAll('.score-btn');
             const numBtns = document.querySelectorAll('.num-btn');
@@ -259,12 +255,17 @@
                 clearInput();
                 updateMainDisplay();
             };
-
-            const resetTurn = () => {
-                state.remaining = state.target;
-                state.darts = [];
-                clearInput();
-                updateMainDisplay();
+            
+            const undoLastScore = () => {
+                if (state.darts.length > 0) {
+                    const lastScore = state.darts.pop();
+                    state.remaining += lastScore;
+                    clearInput();
+                    updateMainDisplay();
+                } else { // If no darts thrown, reset the turn
+                    state.remaining = state.target;
+                    updateMainDisplay();
+                }
             };
 
             const handleScoreInput = (score) => {
@@ -291,21 +292,13 @@
                     setTimeout(randomCheckout, 1500);
                 } else if (state.remaining < 0 || state.remaining === 1) {
                     showToast("Bust!", "error");
-                    setTimeout(resetTurn, 1500);
+                    const currentTarget = state.target;
+                    setTimeout(() => setTarget(currentTarget), 1500);
                 } else if (state.darts.length === 3) {
                     showToast("Turn Over", "info");
                 }
             };
             
-            const undoLastScore = () => {
-                if (state.darts.length > 0) {
-                    const lastScore = state.darts.pop();
-                    state.remaining += lastScore;
-                    clearInput();
-                    updateMainDisplay();
-                }
-            };
-
             const appendToInput = (digit) => {
                 if (state.currentInput.length >= 3) return;
                 const newScore = parseInt(state.currentInput + digit, 10);
@@ -352,7 +345,6 @@
 
             // --- EVENT LISTENERS ---
             randomBtn.addEventListener('click', randomCheckout);
-            resetBtn.addEventListener('click', resetTurn);
             undoBtn.addEventListener('click', undoLastScore);
             clearInputBtn.addEventListener('click', clearInput);
             submitScoreBtn.addEventListener('click', submitInput);
